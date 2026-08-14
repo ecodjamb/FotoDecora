@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>FotoDecora — Decora tu espacio con IA</title>
+  <meta name="description" content="Fotografía un espacio y recibe tres propuestas de decoración comprables en Chile.">
+  <link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="#">Foto<span>Decora</span></a><nav><button class="link-btn" id="projectsBtn">Mis proyectos</button><button class="pill ghost" id="authBtn">Ingresar</button></nav></header>
+  <main>
+    <section class="hero" id="hero">
+      <div class="hero-copy"><p class="eyebrow">DECORACIÓN REAL, LISTA PARA COMPRAR</p><h1>Tu espacio.<br><em>Tres posibilidades.</em></h1><p class="lead">Saca una foto, cuéntanos qué imaginas y descubre propuestas con productos que puedes comprar en Chile.</p><label class="pill primary upload"><input id="photoInput" type="file" accept="image/*" capture="environment">Tomar o subir una foto <span>→</span></label><p class="micro">Puedes probar sin registrarte. Solo te pediremos una cuenta al guardar.</p></div>
+      <div class="hero-visual"><div class="room-card"><div class="room-placeholder"><span>✦</span><p>Tu próxima idea comienza aquí</p></div><div class="floating-tag tag1">3 niveles de presupuesto</div><div class="floating-tag tag2">Productos en Chile</div></div></div>
+    </section>
+
+    <section class="wizard hidden" id="wizard">
+      <div class="step-head"><button class="back" id="backHome">← Volver</button><span>PASO 1 DE 2</span></div>
+      <div class="wizard-grid"><div class="photo-stage"><img id="photoPreview" alt="Espacio que quieres decorar"><button class="change-photo" id="changePhoto">Cambiar foto</button></div>
+      <form id="briefForm" class="brief"><p class="eyebrow">CUÉNTANOS TU IDEA</p><h2>¿Cómo quieres transformar este espacio?</h2>
+        <label>¿Qué sector es?<select name="room" required><option value="">Selecciona...</option><option>Living</option><option>Comedor</option><option>Dormitorio</option><option>Baño</option><option>Cocina</option><option>Terraza</option><option>Oficina</option><option>Otro</option></select></label>
+        <label>Describe lo que buscas<textarea name="instructions" required placeholder="Ej: Quiero un living cálido, moderno, fácil de mantener y conservar el sofá..."></textarea></label>
+        <div class="two"><label>Estilo preferido<select name="style"><option>Recomiéndame</option><option>Moderno cálido</option><option>Minimalista</option><option>Nórdico</option><option>Japandi</option><option>Clásico</option><option>Industrial</option><option>Boho</option></select></label><label>Prioridad<select name="priority"><option>Equilibrio general</option><option>Más almacenamiento</option><option>Más iluminación</option><option>Más amplitud visual</option><option>Apto para niños/mascotas</option></select></label></div>
+        <label>¿Qué debe mantenerse?<input name="keep" placeholder="Ej: sofá, televisor y piso actual"></label>
+        <div class="two"><label>Ancho aproximado (m)<input name="width" inputmode="decimal" placeholder="4,5"></label><label>Fondo aproximado (m)<input name="depth" inputmode="decimal" placeholder="3,8"></label></div>
+        <button class="pill primary full" type="submit">Crear mis tres propuestas <span>✦</span></button><p class="micro centered">La generación usa créditos de tu cuenta OpenAI y puede tardar unos minutos.</p>
+      </form></div>
+    </section>
+
+    <section class="loading hidden" id="loading"><div class="loader-orbit"><span>✦</span></div><p class="eyebrow">FOTODECORA ESTÁ DISEÑANDO</p><h2 id="loadingTitle">Analizando luz, distribución y estilo…</h2><div class="progress"><i id="progressBar"></i></div><p id="loadingDetail">Buscando piezas disponibles en tiendas chilenas.</p></section>
+
+    <section class="results hidden" id="results"><div class="results-head"><div><p class="eyebrow">TU PROYECTO</p><h2 id="resultTitle">Tres formas de transformar tu espacio</h2></div><div class="result-actions"><button class="pill ghost" id="restartBtn">Nueva foto</button><button class="pill primary" id="saveBtn">Guardar proyecto</button></div></div><div class="tabs" id="tabs"></div><div id="concept"></div><div class="budget-summary" id="budgetSummary"></div><div class="products-head"><div><p class="eyebrow">LISTA DE COMPRA VERIFICADA</p><h2>Todo lo que necesitas</h2></div><p>Precios referenciales verificados al generar. Confirma stock y despacho antes de comprar.</p></div><div class="product-list" id="productList"></div></section>
+  </main>
+
+  <dialog id="authDialog"><button class="dialog-close" data-close>×</button><p class="eyebrow">GUARDA TUS IDEAS</p><h2>Entra a FotoDecora</h2><p>Usa tu correo. Si aún no tienes cuenta, la crearemos automáticamente.</p><form id="authForm"><label>Correo<input type="email" name="email" required placeholder="tu@correo.cl"></label><label>Contraseña<input type="password" name="password" required minlength="6" placeholder="Mínimo 6 caracteres"></label><button class="pill primary full">Continuar</button></form><p class="form-message" id="authMessage"></p></dialog>
+  <dialog id="nameDialog"><button class="dialog-close" data-close>×</button><p class="eyebrow">GUARDAR PROYECTO</p><h2>¿Cómo quieres llamarlo?</h2><form id="nameForm"><label>Nombre del proyecto<input name="name" required maxlength="60" placeholder="Ej: Living Arrayán"></label><button class="pill primary full">Guardar</button></form></dialog>
+  <dialog id="projectsDialog" class="wide"><button class="dialog-close" data-close>×</button><p class="eyebrow">TU COLECCIÓN</p><h2>Mis proyectos</h2><div id="savedProjects" class="saved-projects"></div></dialog>
+  <script src="/app.js" type="module"></script>
+</body></html>
