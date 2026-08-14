@@ -1,0 +1,1 @@
+export default function handler(req,res){res.setHeader('Cache-Control','public, max-age=300');res.json({supabaseUrl:process.env.SUPABASE_URL||'https://vmrxrwmqkyrkefeykfxn.supabase.co',supabaseKey:process.env.SUPABASE_PUBLISHABLE_KEY||'sb_publishable_Dj6vAkpWuz1QL5DGIO6nNQ_okbQNNGt'})}
