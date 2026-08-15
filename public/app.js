@@ -1,6 +1,6 @@
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const state={photo:null,brief:null,plan:null,tier:0,images:[null,null,null],session:null,config:null,generating:new Set()};
+const state={photo:null,brief:null,plan:null,tier:0,images:[null,null,null],session:null,config:null,generating:new Set(),refining:new Set(),iterations:[0,0,0]};
 const money=n=>new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(Number(n)||0);
 const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 const safeUrl=u=>{try{const x=new URL(String(u));return /^https?:$/.test(x.protocol)?x.href:'#'}catch{return'#'}};
@@ -37,7 +37,7 @@ async function selectPhoto(file){
 $('#photoInput').onchange=e=>selectPhoto(e.target.files[0]);
 $('#changePhoto').onclick=()=>$('#photoInput').click();
 $('#backHome').onclick=()=>section('hero');
-$('#restartBtn').onclick=()=>{state.plan=null;state.images=[null,null,null];state.tier=0;state.photo=null;$('#briefForm').reset();$('#photoInput').value='';section('hero')};
+$('#restartBtn').onclick=()=>{state.plan=null;state.images=[null,null,null];state.iterations=[0,0,0];state.tier=0;state.photo=null;$('#briefForm').reset();$('#photoInput').value='';section('hero')};
 
 $('#briefForm').onsubmit=async e=>{
   e.preventDefault();
@@ -49,7 +49,8 @@ $('#briefForm').onsubmit=async e=>{
     const data=await r.json();
     if(!r.ok)throw new Error(data.error||'No pudimos crear el proyecto.');
     if(!Array.isArray(data.tiers)||data.tiers.length!==3)throw new Error('La propuesta llegó incompleta. Intenta nuevamente.');
-    state.plan=data;state.images=[null,null,null];state.tier=0;
+    data.tiers.forEach(t=>{if(Array.isArray(t.products))t.products=t.products.map(p=>({...p,is_new:false}))});
+    state.plan=data;state.images=[null,null,null];state.iterations=[0,0,0];state.tier=0;
     renderResults();section('results');
     generateAllImages();
   }catch(err){toast(err.message||'Ocurrió un error.');section('wizard')}
@@ -63,7 +64,7 @@ function animateLoading(){
 }
 async function generateAllImages(){for(let i=0;i<3;i++)generateImage(i)}
 async function generateImage(i){
-  if(!state.plan?.tiers?.[i]||state.generating.has(i))return;
+  if(!state.plan?.tiers?.[i]||state.generating.has(i)||state.refining.has(i))return;
   state.generating.add(i);renderTierNav();if(state.tier===i)renderTier();
   const t=state.plan.tiers[i];
   try{
@@ -89,8 +90,8 @@ function renderTierNav(){
   if(!state.plan)return;
   const root=$('#tabs');if(!root)return;
   root.innerHTML=`<div class="tier-switcher">${state.plan.tiers.map((t,i)=>{
-    const img=state.images[i],loading=state.generating.has(i),status=loading?'Generando foto…':typeof img==='string'?'Foto lista':img?.error?'Reintentar foto':'Pendiente';
-    return `<button type="button" class="tier-card ${i===state.tier?'active':''}" data-tier="${i}"><span>${esc(t.level)}</span><strong>${money(t.total)}</strong><small class="${img?.error?'error':''}">${esc(status)}</small></button>`
+    const img=state.images[i],loading=state.generating.has(i)||state.refining.has(i),status=state.refining.has(i)?'Aplicando cambio…':loading?'Generando foto…':typeof img==='string'?'Foto lista':img?.error?'Reintentar foto':'Pendiente';
+    return `<button type="button" class="tier-card ${i===state.tier?'active':''}" data-tier="${i}"><span>${esc(t.level)}</span><strong>${money(t.total)}</strong><small class="${img?.error?'error':''}">${esc(status)}</small><em>${state.iterations[i]||0}/10 cambios</em></button>`
   }).join('')}</div>`;
   $$('.tier-card',root).forEach(b=>b.onclick=()=>setTier(b.dataset.tier));
 }
@@ -99,23 +100,51 @@ function productThumb(url,name){
   if(url==='#')return `<div class="product-thumb fallback">◇</div>`;
   return `<div class="product-thumb"><img loading="lazy" src="/api/product-image?url=${encodeURIComponent(url)}" alt="${esc(name)}" onerror="this.parentElement.classList.add('fallback');this.remove()"><span>◇</span></div>`;
 }
+function openRefine(){
+  const i=state.tier;if(typeof state.images[i]!=='string')return toast('Espera a que la imagen esté lista para editarla.');
+  if((state.iterations[i]||0)>=10)return toast('Esta alternativa ya alcanzó el máximo de 10 iteraciones.');
+  $('#refineForm').reset();$('#iterationLabel').textContent=`Iteración ${state.iterations[i]||0} de 10`;$('#refineDialog').showModal();
+}
+async function applyRefinement(modification){
+  const i=state.tier;if(state.refining.has(i))return;
+  const current=state.iterations[i]||0;if(current>=10)throw new Error('Se alcanzó el máximo de 10 iteraciones para esta alternativa.');
+  const oldTier=state.plan.tiers[i],baseImage=state.images[i];
+  state.refining.add(i);renderTierNav();renderTier();
+  try{
+    const rr=await fetch('/api/refine',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({tier:oldTier,modification,brief:state.brief,iteration:current+1})});
+    const updated=await rr.json();if(!rr.ok)throw new Error(updated.error||'No se pudo actualizar la propuesta');
+    const ir=await fetch('/api/decorate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({image:baseImage,prompt:`MODIFICACIÓN INCREMENTAL: ${modification}. ${updated.image_prompt}. Mantén exactamente iguales todos los elementos que no estén mencionados en la modificación.`,tier:updated.level,room:state.brief?.room,keep:'todos los elementos actuales no mencionados en el cambio'})});
+    const img=await ir.json();if(!ir.ok)throw new Error(img.error||'No se pudo generar la imagen modificada');
+    state.plan.tiers[i]=updated;state.images[i]=img.image;state.iterations[i]=current+1;
+    toast(`Cambio aplicado. Iteración ${state.iterations[i]} de 10.`);
+  }finally{state.refining.delete(i);renderTierNav();if(state.tier===i)renderTier()}
+}
 function renderTier(){
   if(!state.plan)return;
   const t=state.plan.tiers[state.tier],im=state.images[state.tier],products=Array.isArray(t.products)?t.products:[];
   let imageMarkup='';
-  if(state.generating.has(state.tier)) imageMarkup=`<div class="image-state"><div class="mini-loader"></div><h4>Generando propuesta ${esc(t.level)}</h4><p>Estamos aplicando el diseño sobre tu foto original.</p></div>`;
+  if(state.refining.has(state.tier)) imageMarkup=`<div class="image-state"><div class="mini-loader"></div><h4>Aplicando tu cambio</h4><p>Mantenemos el resto de la propuesta constante y actualizamos solo lo solicitado.</p></div>`;
+  else if(state.generating.has(state.tier)) imageMarkup=`<div class="image-state"><div class="mini-loader"></div><h4>Generando propuesta ${esc(t.level)}</h4><p>Estamos aplicando el diseño sobre tu foto original.</p></div>`;
   else if(typeof im==='string') imageMarkup=`<img class="proposal-image" src="${esc(im)}" alt="Propuesta ${esc(t.level)}">${state.photo?`<img class="original-image hidden" src="${esc(state.photo)}" alt="Foto original"><div class="compare-controls"><button class="active" data-view="after">Propuesta</button><button data-view="before">Original</button></div>`:''}`;
   else imageMarkup=`<div class="image-state error-state"><h4>${im?.error?'No pudimos generar esta foto':'La foto todavía no se ha generado'}</h4><p>${esc(im?.error||'Puedes generarla ahora.')}</p><button class="pill primary retry" type="button">${im?.error?'Reintentar imagen':'Generar imagen'}</button></div>`;
 
-  $('#concept').innerHTML=`<article class="concept-card"><div class="concept-image">${imageMarkup}</div><div class="concept-copy"><p class="eyebrow">PROPUESTA ${esc(String(t.level).toUpperCase())}</p><h3>${esc(t.name)}</h3><p>${esc(t.description)}</p><div class="concept-meta"><span>${products.length} productos</span><span>${money(t.total)}</span></div><div class="palette">${(t.palette||[]).filter(validColor).map(c=>`<span class="swatch" title="${esc(c)}" style="background:${esc(c)}"></span>`).join('')}</div><p><strong>Clave del diseño</strong><br>${esc(t.design_notes)}</p></div></article>`;
+  const editable=typeof im==='string'&&!state.refining.has(state.tier)&&(state.iterations[state.tier]||0)<10;
+  $('#concept').innerHTML=`<article class="concept-card"><div class="concept-image">${imageMarkup}</div><div class="concept-copy"><p class="eyebrow">PROPUESTA ${esc(String(t.level).toUpperCase())}</p><h3>${esc(t.name)}</h3><p>${esc(t.description)}</p><div class="concept-meta"><span>${products.length} productos</span><span>${money(t.total)}</span><span>${state.iterations[state.tier]||0}/10 ediciones</span></div><div class="palette">${(t.palette||[]).filter(validColor).map(c=>`<span class="swatch" title="${esc(c)}" style="background:${esc(c)}"></span>`).join('')}</div><p><strong>Clave del diseño</strong><br>${esc(t.design_notes)}</p><button type="button" class="pill edit-proposal ${editable?'primary':'ghost'}" ${editable?'':'disabled'}>${(state.iterations[state.tier]||0)>=10?'Máximo de ediciones alcanzado':'Editar esta propuesta'}</button><small class="edit-help">Puedes pedir hasta 10 cambios sobre esta misma alternativa. Solo cambiaremos lo que indiques.</small></div></article>`;
 
   $('.retry')?.addEventListener('click',()=>generateImage(state.tier));
+  $('.edit-proposal')?.addEventListener('click',openRefine);
   $$('.compare-controls button').forEach(b=>b.onclick=()=>{const original=$('.original-image'),proposal=$('.proposal-image'),before=b.dataset.view==='before';original?.classList.toggle('hidden',!before);proposal?.classList.toggle('hidden',before);$$('.compare-controls button').forEach(x=>x.classList.toggle('active',x===b))});
 
   const subtotal=cat=>products.filter(x=>x.category===cat).reduce((a,x)=>a+(Number(x.price)||0)*(Number(x.quantity)||0),0),cats=[...new Set(products.map(x=>x.category).filter(Boolean))];
   $('#budgetSummary').innerHTML=`<div><span>PRESUPUESTO TOTAL</span><strong>${money(t.total)}</strong></div>${cats.slice(0,3).map(c=>`<div><span>${esc(String(c).toUpperCase())}</span><strong>${money(subtotal(c))}</strong></div>`).join('')}`;
-  $('#productList').innerHTML=products.map(x=>{const url=safeUrl(x.url);return `<article class="product">${productThumb(url,x.name)}<div class="product-main"><span class="product-category">${esc(x.category||'Producto')}</span><h4>${esc(x.name)}</h4><p>${esc(x.specification||'')}</p></div><div class="store"><strong>${esc(x.store)}</strong><p>${esc(x.availability||'Chile')}</p></div><div class="qty"><p>${esc(x.quantity)} un.</p><span class="price">${money((Number(x.price)||0)*(Number(x.quantity)||0))}</span></div>${url==='#'?'<span class="unavailable">Sin enlace</span>':`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Ver producto ↗</a>`}</article>`}).join('');
+  $('#productList').innerHTML=products.map(x=>{const url=safeUrl(x.url);return `<article class="product ${x.is_new?'product-new':''}">${productThumb(url,x.name)}<div class="product-main"><span class="product-category">${esc(x.category||'Producto')} ${x.is_new?'<b class="new-badge">NEW</b>':''}</span><h4>${esc(x.name)}</h4><p>${esc(x.specification||'')}</p></div><div class="store"><strong>${esc(x.store)}</strong><p>${esc(x.availability||'Chile')}</p></div><div class="qty"><p>${esc(x.quantity)} un.</p><span class="price">${money((Number(x.price)||0)*(Number(x.quantity)||0))}</span></div>${url==='#'?'<span class="unavailable">Sin enlace</span>':`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Ver producto ↗</a>`}</article>`}).join('');
 }
+
+$('#refineForm').onsubmit=async e=>{
+  e.preventDefault();const modification=new FormData(e.target).get('modification')?.trim();if(!modification)return;
+  const btn=$('#refineSubmit');btn.disabled=true;btn.textContent='Aplicando cambio…';$('#refineDialog').close();
+  try{await applyRefinement(modification)}catch(err){toast(err.message||'No se pudo aplicar el cambio.')}finally{btn.disabled=false;btn.textContent='Aplicar cambio'}
+};
 
 $('#authBtn').onclick=()=>state.session?openProjects():$('#authDialog').showModal();
 $('#authForm').onsubmit=async e=>{
@@ -138,7 +167,7 @@ async function ensureSession(force=true){
 }
 $('#logoutBtn').onclick=async()=>{try{if(state.session)await fetch(`${state.config.supabaseUrl}/auth/v1/logout`,{method:'POST',headers:{apikey:state.config.supabaseKey,Authorization:`Bearer ${state.session.access_token}`}})}catch{}clearSession();$('#projectsDialog').close();toast('Sesión cerrada.')};
 $('#saveBtn').onclick=()=>state.session?$('#nameDialog').showModal():$('#authDialog').showModal();
-$('#nameForm').onsubmit=async e=>{e.preventDefault();const name=new FormData(e.target).get('name');try{await supa('/rest/v1/projects','POST',{name,room_type:state.brief.room,brief:state.brief,design:state.plan,generated_images:{original:state.photo,proposals:state.images}});$('#nameDialog').close();e.target.reset();toast('Proyecto guardado correctamente.')}catch(err){toast(err.message)}};
+$('#nameForm').onsubmit=async e=>{e.preventDefault();const name=new FormData(e.target).get('name');try{await supa('/rest/v1/projects','POST',{name,room_type:state.brief.room,brief:state.brief,design:state.plan,generated_images:{original:state.photo,proposals:state.images,iterations:state.iterations}});$('#nameDialog').close();e.target.reset();toast('Proyecto guardado correctamente.')}catch(err){toast(err.message)}};
 async function supa(path,method='GET',body){if(!await ensureSession())throw new Error('Tu sesión venció. Ingresa nuevamente.');const r=await fetch(state.config.supabaseUrl+path,{method,headers:{apikey:state.config.supabaseKey,Authorization:`Bearer ${state.session.access_token}`,'content-type':'application/json',Prefer:'return=representation'},body:body?JSON.stringify(body):undefined});if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.message||d.error_description||'No se pudo completar la operación.')}return r.status===204?null:r.json()}
 $('#projectsBtn').onclick=()=>state.session?openProjects():$('#authDialog').showModal();
 async function openProjects(){$('#projectsDialog').showModal();await loadProjects()}
@@ -147,7 +176,7 @@ async function loadProjects(){
   try{
     const ps=await supa('/rest/v1/projects?select=*&order=created_at.desc');
     box.innerHTML=ps.length?ps.map(p=>`<article class="saved-card"><p>${new Date(p.created_at).toLocaleDateString('es-CL')}</p><h3>${esc(p.name)}</h3><p>${esc(p.room_type)} · ${p.design?.tiers?.length||0} propuestas</p><div class="saved-card-actions"><button class="pill ghost" data-open="${esc(p.id)}">Abrir</button><button class="pill ghost" data-delete="${esc(p.id)}">Eliminar</button></div></article>`).join(''):'<p>Aún no tienes proyectos guardados.</p>';
-    $$('[data-open]',box).forEach(b=>b.onclick=()=>{const p=ps.find(x=>x.id===b.dataset.open),g=p.generated_images;state.plan=p.design;state.brief=p.brief;state.images=Array.isArray(g)?g:(g?.proposals||[null,null,null]);state.photo=Array.isArray(g)?null:(g?.original||null);state.tier=0;$('#projectsDialog').close();renderResults();section('results')});
+    $$('[data-open]',box).forEach(b=>b.onclick=()=>{const p=ps.find(x=>x.id===b.dataset.open),g=p.generated_images;state.plan=p.design;state.brief=p.brief;state.images=Array.isArray(g)?g:(g?.proposals||[null,null,null]);state.photo=Array.isArray(g)?null:(g?.original||null);state.iterations=Array.isArray(g?.iterations)?g.iterations:[0,0,0];state.plan?.tiers?.forEach(t=>{if(Array.isArray(t.products))t.products=t.products.map(p=>({...p,is_new:Boolean(p.is_new)}))});state.tier=0;$('#projectsDialog').close();renderResults();section('results')});
     $$('[data-delete]',box).forEach(b=>b.onclick=async()=>{if(!confirm('¿Eliminar este proyecto?'))return;try{await supa(`/rest/v1/projects?id=eq.${encodeURIComponent(b.dataset.delete)}`,'DELETE');toast('Proyecto eliminado.');await loadProjects()}catch(e){toast(e.message)}});
   }catch(e){box.innerHTML=`<p>${esc(e.message)}</p>`}
 }
