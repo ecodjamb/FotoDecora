@@ -1,106 +1,21 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f7f3ec">
-  <title>FotoDecora — Diseña tu espacio con IA</title>
-  <meta name="description" content="Fotografía un espacio y recibe tres propuestas de decoración con productos reales disponibles en Chile.">
-  <link rel="icon" href="/favicon.svg">
-  <link rel="stylesheet" href="/styles.css">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f7f3ec">
+  <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="FotoDecora">
+  <title>FotoDecora — Diseña tu espacio con IA</title><meta name="description" content="Fotografía un espacio y recibe tres propuestas de decoración con productos reales disponibles en Chile.">
+  <link rel="icon" type="image/svg+xml" href="/app-icon.svg"><link rel="apple-touch-icon" href="/app-icon.svg"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="#" aria-label="FotoDecora inicio">Foto<span>Decora</span></a>
-    <div class="topbar-center"><span class="status-dot"></span> IA + productos reales en Chile</div>
-    <nav><button class="link-btn" id="projectsBtn">Mis proyectos</button><button class="pill ghost" id="authBtn">Ingresar</button></nav>
-  </header>
-
-  <main>
-    <section class="hero" id="hero">
-      <div class="hero-copy">
-        <p class="eyebrow">INTERIORISMO CON IA · SANTIAGO, CHILE</p>
-        <h1>Imagina tu espacio.<br><em>Velo antes de comprar.</em></h1>
-        <p class="lead">Sube una foto, dinos qué quieres cambiar y FotoDecora crea tres propuestas fotorrealistas con una lista de compra real para ejecutarlas.</p>
-        <div class="hero-actions">
-          <label class="pill primary upload"><input id="photoInput" type="file" accept="image/*" capture="environment">Fotografiar o subir espacio <span>→</span></label>
-          <span class="hero-note">Sin registro para probar</span>
-        </div>
-        <div class="trust-row"><span>✓ 3 presupuestos</span><span>✓ Productos comprables</span><span>✓ Conserva lo que tú elijas</span></div>
-      </div>
-
-      <div class="hero-visual" aria-hidden="true">
-        <div class="room-card">
-          <div class="room-window"><i></i><i></i></div>
-          <div class="room-art"><span></span><span></span></div>
-          <div class="room-lamp"></div>
-          <div class="room-sofa"><i></i><i></i></div>
-          <div class="room-table"></div>
-          <div class="room-rug"></div>
-          <div class="room-plant">✦</div>
-          <div class="visual-chip chip-top"><b>01</b><span>Analiza tu foto</span></div>
-          <div class="visual-chip chip-bottom"><b>03</b><span>Compra lo necesario</span></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="how-it-works">
-      <div><span>01</span><h3>Fotografía</h3><p>Usa cualquier foto clara de tu espacio.</p></div>
-      <div><span>02</span><h3>Describe</h3><p>Indica estilo, prioridades y qué debe mantenerse.</p></div>
-      <div><span>03</span><h3>Elige</h3><p>Compara Económica, Intermedia y Premium.</p></div>
-    </section>
-
-    <section class="wizard hidden" id="wizard">
-      <div class="step-head"><button class="back" id="backHome">← Volver</button><span>PASO 1 DE 2 · DEFINE TU ESPACIO</span></div>
-      <div class="wizard-grid">
-        <div class="photo-stage"><img id="photoPreview" alt="Espacio que quieres decorar"><div class="photo-badge">FOTO ORIGINAL</div><button class="change-photo" id="changePhoto">Cambiar foto</button></div>
-        <form id="briefForm" class="brief">
-          <p class="eyebrow">TU BRIEF DE DISEÑO</p>
-          <h2>¿Cómo quieres transformar este espacio?</h2>
-          <label>¿Qué sector es?<select name="room" required><option value="">Selecciona...</option><option>Living</option><option>Comedor</option><option>Dormitorio</option><option>Baño</option><option>Cocina</option><option>Terraza</option><option>Oficina</option><option>Hall de acceso</option><option>Otro</option></select></label>
-          <label>Describe lo que buscas<textarea name="instructions" required maxlength="1200" placeholder="Ej: Quiero un living cálido y contemporáneo, con más luz, fácil de mantener y sin cambiar el sofá..."></textarea><small>Mientras más específico seas, mejor será la propuesta.</small></label>
-          <div class="two"><label>Estilo preferido<select name="style"><option>Recomiéndame según la foto</option><option>Moderno cálido</option><option>Minimalista</option><option>Nórdico</option><option>Japandi</option><option>Clásico contemporáneo</option><option>Industrial</option><option>Boho</option><option>Mediterráneo</option></select></label><label>Prioridad<select name="priority"><option>Equilibrio general</option><option>Más almacenamiento</option><option>Más iluminación</option><option>Más amplitud visual</option><option>Apto para niños/mascotas</option><option>Máximo impacto visual</option></select></label></div>
-          <label>¿Qué debe mantenerse?<input name="keep" maxlength="300" placeholder="Ej: sofá, televisor, piso y cortinas actuales"></label>
-          <div class="two"><label>Ancho aproximado (m)<input name="width" inputmode="decimal" placeholder="4,5"></label><label>Fondo aproximado (m)<input name="depth" inputmode="decimal" placeholder="3,8"></label></div>
-          <button class="pill primary full create-btn" type="submit">Diseñar mis tres propuestas <span>✦</span></button>
-          <p class="micro centered">FotoDecora analizará la habitación, buscará productos y generará tres visualizaciones.</p>
-        </form>
-      </div>
-    </section>
-
-    <section class="loading hidden" id="loading">
-      <div class="loader-orbit"><span>✦</span></div>
-      <p class="eyebrow">FOTODECORA ESTÁ DISEÑANDO</p>
-      <h2 id="loadingTitle">Analizando luz, distribución y estilo…</h2>
-      <div class="progress"><i id="progressBar"></i></div>
-      <p id="loadingDetail">Buscando piezas disponibles en tiendas chilenas.</p>
-      <div class="loading-steps"><span class="on">Análisis</span><span>Productos</span><span>Imágenes</span></div>
-    </section>
-
-    <section class="results hidden" id="results">
-      <div class="results-head">
-        <div><p class="eyebrow">TU PROYECTO FOTODECORA</p><h2 id="resultTitle">Tres formas de transformar tu espacio</h2></div>
-        <div class="result-actions"><button class="pill ghost" id="restartBtn">Nueva foto</button><button class="pill primary" id="saveBtn">Guardar proyecto</button></div>
-      </div>
-      <div class="space-analysis" id="spaceAnalysis"></div>
-      <div class="tabs" id="tabs"></div>
-      <div id="concept"></div>
-      <div class="budget-summary" id="budgetSummary"></div>
-      <div class="products-head"><div><p class="eyebrow">LISTA DE COMPRA</p><h2>Todo lo que necesitas para ejecutarlo</h2></div><p>Precios y disponibilidad son referenciales al momento de generar. Confirma stock y despacho directamente en la tienda antes de comprar.</p></div>
-      <div class="product-list" id="productList"></div>
-    </section>
-  </main>
-
-  <footer><a class="brand" href="#">Foto<span>Decora</span></a><p>Diseño inteligente para espacios reales.</p><span>Santiago · Chile</span></footer>
-
-  <dialog id="authDialog">
-    <button class="dialog-close" data-close>×</button><p class="eyebrow">GUARDA TUS IDEAS</p><h2>Entra a FotoDecora</h2><p>Usa tu correo. Si todavía no tienes cuenta, la crearemos automáticamente.</p>
-    <form id="authForm"><label>Correo<input type="email" name="email" autocomplete="email" required placeholder="tu@correo.cl"></label><label>Contraseña<input type="password" name="password" autocomplete="current-password" required minlength="6" placeholder="Mínimo 6 caracteres"></label><button class="pill primary full">Continuar</button></form><p class="form-message" id="authMessage"></p>
-  </dialog>
-  <dialog id="nameDialog"><button class="dialog-close" data-close>×</button><p class="eyebrow">GUARDAR PROYECTO</p><h2>¿Cómo quieres llamarlo?</h2><form id="nameForm"><label>Nombre del proyecto<input name="name" required maxlength="60" placeholder="Ej: Living Arrayán"></label><button class="pill primary full">Guardar proyecto</button></form></dialog>
-  <dialog id="projectsDialog" class="wide"><button class="dialog-close" data-close>×</button><div class="dialog-heading"><div><p class="eyebrow">TU COLECCIÓN</p><h2>Mis proyectos</h2></div><button class="link-btn danger" id="logoutBtn">Cerrar sesión</button></div><div id="savedProjects" class="saved-projects"></div></dialog>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="/app.js" type="module"></script>
-</body>
-</html>
+<header class="topbar"><a class="brand brand-lockup" href="#" aria-label="FotoDecora inicio"><img src="/app-icon.svg" alt=""><span class="brand-name">FotoDecora</span></a><div class="topbar-center"><span class="status-dot"></span> IA + productos reales en Chile</div><nav><button class="link-btn" id="projectsBtn">Mis proyectos</button><button class="pill ghost" id="authBtn">Ingresar</button></nav></header>
+<main>
+<section class="hero" id="hero"><div class="hero-copy"><p class="eyebrow">INTERIORISMO CON IA · SANTIAGO, CHILE</p><h1>Imagina tu espacio.<br><em>Velo antes de comprar.</em></h1><p class="lead">Sube una foto, dinos qué quieres cambiar y FotoDecora crea tres propuestas fotorrealistas con una lista de compra real para ejecutarlas.</p><div class="hero-actions"><label class="pill primary upload"><input id="photoInput" type="file" accept="image/*" capture="environment">Fotografiar o subir espacio <span>→</span></label><span class="hero-note">Sin registro para probar</span></div><div class="trust-row"><span>✓ 3 presupuestos</span><span>✓ Productos comprables</span><span>✓ Conserva lo que tú elijas</span></div></div><div class="hero-visual" aria-hidden="true"><div class="room-card"><div class="room-window"><i></i><i></i></div><div class="room-art"><span></span><span></span></div><div class="room-lamp"></div><div class="room-sofa"><i></i><i></i></div><div class="room-table"></div><div class="room-rug"></div><div class="room-plant">✦</div><div class="visual-chip chip-top"><b>01</b><span>Analiza tu foto</span></div><div class="visual-chip chip-bottom"><b>03</b><span>Compra lo necesario</span></div></div></div></section>
+<section class="how-it-works"><div><span>01</span><h3>Fotografía</h3><p>Usa cualquier foto clara de tu espacio.</p></div><div><span>02</span><h3>Describe</h3><p>Indica estilo, prioridades y qué debe mantenerse.</p></div><div><span>03</span><h3>Elige</h3><p>Compara Económica, Intermedia y Premium.</p></div></section>
+<section class="wizard hidden" id="wizard"><div class="step-head"><button class="back" id="backHome">← Volver</button><span>PASO 1 DE 2 · DEFINE TU ESPACIO</span></div><div class="wizard-grid"><div class="photo-stage"><img id="photoPreview" alt="Espacio que quieres decorar"><div class="photo-badge">FOTO ORIGINAL</div><button class="change-photo" id="changePhoto">Cambiar foto</button></div><form id="briefForm" class="brief"><p class="eyebrow">TU BRIEF DE DISEÑO</p><h2>¿Cómo quieres transformar este espacio?</h2><label>¿Qué sector es?<select name="room" required><option value="">Selecciona...</option><option>Living</option><option>Comedor</option><option>Dormitorio</option><option>Baño</option><option>Cocina</option><option>Terraza</option><option>Oficina</option><option>Hall de acceso</option><option>Otro</option></select></label><label>Describe lo que buscas<textarea name="instructions" required maxlength="1200" placeholder="Ej: Quiero un living cálido y contemporáneo, con más luz, fácil de mantener y sin cambiar el sofá..."></textarea><small>Mientras más específico seas, mejor será la propuesta.</small></label><div class="two"><label>Estilo preferido<select name="style"><option>Recomiéndame según la foto</option><option>Moderno cálido</option><option>Minimalista</option><option>Nórdico</option><option>Japandi</option><option>Clásico contemporáneo</option><option>Industrial</option><option>Boho</option><option>Mediterráneo</option></select></label><label>Prioridad<select name="priority"><option>Equilibrio general</option><option>Más almacenamiento</option><option>Más iluminación</option><option>Más amplitud visual</option><option>Apto para niños/mascotas</option><option>Máximo impacto visual</option></select></label></div><label>¿Qué debe mantenerse?<input name="keep" maxlength="300" placeholder="Ej: sofá, televisor, piso y cortinas actuales"></label><div class="two"><label>Ancho aproximado (m)<input name="width" inputmode="decimal" placeholder="4,5"></label><label>Fondo aproximado (m)<input name="depth" inputmode="decimal" placeholder="3,8"></label></div><button class="pill primary full create-btn" type="submit">Diseñar mis tres propuestas <span>✦</span></button><p class="micro centered">FotoDecora analizará la habitación, buscará productos y generará tres visualizaciones.</p></form></div></section>
+<section class="loading hidden" id="loading"><div class="loader-orbit"><span>✦</span></div><p class="eyebrow">FOTODECORA ESTÁ DISEÑANDO</p><h2 id="loadingTitle">Analizando luz, distribución y estilo…</h2><div class="progress"><i id="progressBar"></i></div><p id="loadingDetail">Buscando piezas disponibles en tiendas chilenas.</p><div class="loading-steps"><span class="on">Análisis</span><span>Productos</span><span>Imágenes</span></div></section>
+<section class="results hidden" id="results"><div class="results-head"><div><p class="eyebrow">TU PROYECTO FOTODECORA</p><h2 id="resultTitle">Tres formas de transformar tu espacio</h2></div><div class="result-actions"><button class="pill ghost" id="restartBtn">Nueva foto</button><button class="pill primary" id="saveBtn">Guardar proyecto</button></div></div><div class="space-analysis" id="spaceAnalysis"></div><div class="tabs" id="tabs"></div><div id="concept"></div><div class="budget-summary" id="budgetSummary"></div><div class="products-head"><div><p class="eyebrow">LISTA DE COMPRA</p><h2>Todo lo que necesitas para ejecutarlo</h2></div><p>Precios y disponibilidad son referenciales al momento de generar. Confirma stock y despacho directamente en la tienda antes de comprar.</p></div><div class="product-list" id="productList"></div></section>
+</main>
+<footer><a class="brand brand-lockup" href="#"><img src="/app-icon.svg" alt=""><span class="brand-name">FotoDecora</span></a><p>Diseño inteligente para espacios reales.</p><span>Santiago · Chile</span></footer>
+<dialog id="authDialog"><button class="dialog-close" data-close>×</button><p class="eyebrow">GUARDA TUS IDEAS</p><h2>Entra a FotoDecora</h2><p>Usa tu correo. Si todavía no tienes cuenta, la crearemos automáticamente.</p><form id="authForm"><label>Correo<input type="email" name="email" autocomplete="email" required placeholder="tu@correo.cl"></label><label>Contraseña<input type="password" name="password" autocomplete="current-password" required minlength="6" placeholder="Mínimo 6 caracteres"></label><button class="pill primary full">Continuar</button></form><p class="form-message" id="authMessage"></p></dialog>
+<dialog id="nameDialog"><button class="dialog-close" data-close>×</button><p class="eyebrow">GUARDAR PROYECTO</p><h2>¿Cómo quieres llamarlo?</h2><form id="nameForm"><label>Nombre del proyecto<input name="name" required maxlength="60" placeholder="Ej: Living Arrayán"></label><button class="pill primary full">Guardar proyecto</button></form></dialog>
+<dialog id="projectsDialog" class="wide"><button class="dialog-close" data-close>×</button><div class="dialog-heading"><div><p class="eyebrow">TU COLECCIÓN</p><h2>Mis proyectos</h2></div><button class="link-btn danger" id="logoutBtn">Cerrar sesión</button></div><div id="savedProjects" class="saved-projects"></div></dialog><div class="toast" id="toast" role="status" aria-live="polite"></div><script src="/app.js" type="module"></script></body></html>
